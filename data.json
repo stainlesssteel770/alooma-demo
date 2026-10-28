@@ -1,0 +1,649 @@
+{
+  "version": 1,
+  "inventory": {
+    "tree-mirror": {
+      "qty": 0,
+      "threshold": null
+    },
+    "colored-clay-tool-tray": {
+      "qty": 3,
+      "threshold": 10
+    },
+    "white-clay": {
+      "qty": 28,
+      "threshold": null
+    },
+    "grass-pack-of-6": {
+      "qty": 0,
+      "threshold": null
+    },
+    "double-sided-tape": {
+      "qty": 3,
+      "threshold": 10
+    },
+    "bm-name-labels": {
+      "qty": 19,
+      "threshold": null
+    },
+    "bm-placemat": {
+      "qty": 0,
+      "threshold": null
+    },
+    "grass-template": {
+      "qty": 3,
+      "threshold": 10
+    },
+    "bm-instructions": {
+      "qty": 10,
+      "threshold": null
+    },
+    "tambourines": {
+      "qty": 0,
+      "threshold": null
+    },
+    "tamb-embellishment-tray-large": {
+      "qty": 36,
+      "threshold": null
+    },
+    "embellishment-containers": {
+      "qty": 49,
+      "threshold": null
+    },
+    "wooden-mini-spoons": {
+      "qty": 0,
+      "threshold": null
+    },
+    "wooden-picks": {
+      "qty": 27,
+      "threshold": null
+    },
+    "tamb-placemats": {
+      "qty": 40,
+      "threshold": null
+    },
+    "jerusalem-printouts": {
+      "qty": 0,
+      "threshold": null
+    },
+    "tamb-instructions": {
+      "qty": 18,
+      "threshold": null
+    },
+    "jca-frame": {
+      "qty": 31,
+      "threshold": null
+    },
+    "clay-tray-a": {
+      "qty": 0,
+      "threshold": null
+    },
+    "clay-tray-b": {
+      "qty": 9,
+      "threshold": null
+    },
+    "jca-embellishment-tray": {
+      "qty": 22,
+      "threshold": null
+    },
+    "bag-with-tools": {
+      "qty": 0,
+      "threshold": null
+    },
+    "jca-placemats": {
+      "qty": 48,
+      "threshold": null
+    },
+    "parchment-paper": {
+      "qty": 13,
+      "threshold": null
+    },
+    "jca-templates": {
+      "qty": 0,
+      "threshold": null
+    },
+    "jca-instructions": {
+      "qty": 39,
+      "threshold": null
+    },
+    "wood-board": {
+      "qty": 4,
+      "threshold": null
+    },
+    "tray-set": {
+      "qty": 0,
+      "threshold": null
+    },
+    "miniatures-bread-bag": {
+      "qty": 30,
+      "threshold": null
+    },
+    "wood-burning-cream": {
+      "qty": 43,
+      "threshold": null
+    },
+    "hc-placemat": {
+      "qty": 0,
+      "threshold": null
+    },
+    "hc-instructions": {
+      "qty": 21,
+      "threshold": null
+    },
+    "heat-gun": {
+      "qty": 34,
+      "threshold": null
+    },
+    "heart-jewelry-box": {
+      "qty": 0,
+      "threshold": null
+    },
+    "cake-box": {
+      "qty": 12,
+      "threshold": null
+    },
+    "circle-cardboard": {
+      "qty": 25,
+      "threshold": null
+    },
+    "parchment-circle": {
+      "qty": 0,
+      "threshold": null
+    },
+    "plastic-pet-bowl": {
+      "qty": 3,
+      "threshold": null
+    },
+    "cream-circle-tray": {
+      "qty": 16,
+      "threshold": null
+    },
+    "sprinkles-pack": {
+      "qty": 0,
+      "threshold": null
+    },
+    "faux-cherries-bag": {
+      "qty": 42,
+      "threshold": null
+    },
+    "glue-dots": {
+      "qty": 7,
+      "threshold": null
+    },
+    "popsicle-stick": {
+      "qty": 0,
+      "threshold": null
+    },
+    "ck-placemat": {
+      "qty": 33,
+      "threshold": null
+    },
+    "printed-posters": {
+      "qty": 46,
+      "threshold": null
+    },
+    "poster-stands": {
+      "qty": 0,
+      "threshold": null
+    },
+    "ck-name-labels": {
+      "qty": 24,
+      "threshold": null
+    },
+    "apron": {
+      "qty": 37,
+      "threshold": null
+    },
+    "gloves": {
+      "qty": 0,
+      "threshold": null
+    },
+    "ck-instructions": {
+      "qty": 15,
+      "threshold": null
+    },
+    "mi-frames": {
+      "qty": 28,
+      "threshold": null
+    },
+    "white-block-pack": {
+      "qty": 0,
+      "threshold": null
+    },
+    "miniatures-tray-1": {
+      "qty": 6,
+      "threshold": null
+    },
+    "tools-supplies-tray-2": {
+      "qty": 19,
+      "threshold": null
+    },
+    "scrapbook-paper-pack": {
+      "qty": 0,
+      "threshold": null
+    },
+    "mi-name-label": {
+      "qty": 45,
+      "threshold": null
+    },
+    "mi-placemats": {
+      "qty": 10,
+      "threshold": null
+    },
+    "mi-instructions": {
+      "qty": 0,
+      "threshold": null
+    },
+    "english-ay-printout": {
+      "qty": 36,
+      "threshold": null
+    },
+    "scissors": {
+      "qty": 49,
+      "threshold": null
+    },
+    "tacky-glue": {
+      "qty": 0,
+      "threshold": null
+    },
+    "permanent-markers": {
+      "qty": 27,
+      "threshold": null
+    }
+  },
+  "history": [],
+  "settings": {
+    "features": {
+      "boxes": false,
+      "bins": false,
+      "bulkTab": false
+    },
+    "boxes": [
+      "Box A",
+      "Box B",
+      "Box C"
+    ],
+    "boxRules": [],
+    "bins": {},
+    "recipes": [
+      {
+        "id": "bm",
+        "code": "BM",
+        "name": "Blooming Mirrors",
+        "hidden": false,
+        "lines": [
+          {
+            "item": "tree-mirror",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "colored-clay-tool-tray",
+            "qty": 1,
+            "per": 6
+          },
+          {
+            "item": "white-clay",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "grass-pack-of-6",
+            "qty": 1,
+            "per": 6
+          },
+          {
+            "item": "double-sided-tape",
+            "qty": 2,
+            "per": 6
+          },
+          {
+            "item": "tacky-glue",
+            "qty": 3,
+            "per": 6
+          },
+          {
+            "item": "scissors",
+            "qty": 3,
+            "per": 6
+          },
+          {
+            "item": "bm-name-labels",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "permanent-markers",
+            "qty": 1,
+            "per": 6
+          },
+          {
+            "item": "bm-placemat",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "grass-template",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "bm-instructions",
+            "qty": 6,
+            "per": 6
+          }
+        ]
+      },
+      {
+        "id": "tam",
+        "code": "TAM",
+        "name": "Tambourines",
+        "hidden": false,
+        "lines": [
+          {
+            "item": "tambourines",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "tamb-embellishment-tray-large",
+            "qty": 1,
+            "per": 6
+          },
+          {
+            "item": "embellishment-containers",
+            "qty": 1,
+            "per": 6
+          },
+          {
+            "item": "wooden-mini-spoons",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "wooden-picks",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "scissors",
+            "qty": 3,
+            "per": 6
+          },
+          {
+            "item": "tacky-glue",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "tamb-placemats",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "jerusalem-printouts",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "tamb-instructions",
+            "qty": 6,
+            "per": 6
+          }
+        ]
+      },
+      {
+        "id": "jca",
+        "code": "JCA",
+        "name": "Judaic Clay-Art",
+        "hidden": false,
+        "lines": [
+          {
+            "item": "jca-frame",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "items": [
+              "clay-tray-a",
+              "clay-tray-b"
+            ],
+            "qty": 1,
+            "per": 6
+          },
+          {
+            "item": "jca-embellishment-tray",
+            "qty": 1,
+            "per": 6
+          },
+          {
+            "item": "bag-with-tools",
+            "qty": 1,
+            "per": 6
+          },
+          {
+            "item": "jca-placemats",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "parchment-paper",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "jca-templates",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "jca-instructions",
+            "qty": 2,
+            "per": 6
+          }
+        ]
+      },
+      {
+        "id": "hcb",
+        "code": "HCB",
+        "name": "Hafrashat Challah",
+        "hidden": false,
+        "lines": [
+          {
+            "item": "wood-board",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "tray-set",
+            "qty": 1,
+            "per": 6
+          },
+          {
+            "item": "miniatures-bread-bag",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "wood-burning-cream",
+            "qty": 1,
+            "per": 18
+          },
+          {
+            "item": "hc-placemat",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "hc-instructions",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "heat-gun",
+            "qty": 1,
+            "per": 18
+          }
+        ]
+      },
+      {
+        "id": "cak",
+        "code": "CAK",
+        "name": "The Cakery",
+        "hidden": false,
+        "lines": [
+          {
+            "item": "heart-jewelry-box",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "cake-box",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "circle-cardboard",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "parchment-circle",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "plastic-pet-bowl",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "cream-circle-tray",
+            "qty": 1,
+            "per": 6
+          },
+          {
+            "item": "sprinkles-pack",
+            "qty": 1,
+            "per": 6
+          },
+          {
+            "item": "faux-cherries-bag",
+            "qty": 1,
+            "per": 6
+          },
+          {
+            "item": "scissors",
+            "qty": 2,
+            "per": 6
+          },
+          {
+            "item": "glue-dots",
+            "qty": 1,
+            "per": 6
+          },
+          {
+            "item": "popsicle-stick",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "ck-placemat",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "printed-posters",
+            "qty": 1,
+            "per": 6
+          },
+          {
+            "item": "poster-stands",
+            "qty": 3,
+            "per": 6
+          },
+          {
+            "item": "ck-name-labels",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "permanent-markers",
+            "qty": 1,
+            "per": 6
+          },
+          {
+            "item": "apron",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "gloves",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "ck-instructions",
+            "qty": 6,
+            "per": 6
+          }
+        ]
+      },
+      {
+        "id": "mi",
+        "code": "MI",
+        "name": "Miniature Interiors",
+        "hidden": false,
+        "lines": [
+          {
+            "item": "mi-frames",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "white-block-pack",
+            "qty": 1,
+            "per": 6
+          },
+          {
+            "item": "miniatures-tray-1",
+            "qty": 1,
+            "per": 6
+          },
+          {
+            "item": "tools-supplies-tray-2",
+            "qty": 1,
+            "per": 6
+          },
+          {
+            "item": "scrapbook-paper-pack",
+            "qty": 1,
+            "per": 6
+          },
+          {
+            "item": "scissors",
+            "qty": 3,
+            "per": 6
+          },
+          {
+            "item": "permanent-markers",
+            "qty": 1,
+            "per": 6
+          },
+          {
+            "item": "mi-placemats",
+            "qty": 6,
+            "per": 6
+          },
+          {
+            "item": "mi-instructions",
+            "qty": 6,
+            "per": 6
+          }
+        ]
+      }
+    ],
+    "customItems": [],
+    "reorderQty": null,
+    "hideReorderQtys": false
+  }
+}
