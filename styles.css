@@ -1,0 +1,536 @@
+/* Alooma — calm warehouse UI (visual system: Batch C4, spec 2026-10-22)
+   bg #F5F6F8 · surface #FFF · ink #1F2328 · muted #596370 · accent #2457A6
+   (actions + selection only) · status colours for status only ·
+   8px spacing grid · radius 12 · min target 44px */
+:root {
+  --bg: #F5F6F8; --surface: #FFFFFF; --ink: #1F2328; --muted: #596370;
+  --line: #D9DEE4; --accent: #2457A6; --accent-dark: #1B4382; --accent-soft: #E8EEF8;
+  --amber-bg: #FFF3D6; --amber: #8A4B00; --red: #B42318; --red-bg: #FDECEA;
+  --done: #1A7336; --done-bg: #E5F3E9;
+  --radius: 12px;
+}
+* { box-sizing: border-box; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: var(--bg); font-size: 16px; }
+
+/* header */
+.app-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: center; gap: 10px; }
+.logo { width: 34px; height: 34px; border-radius: 9px; background: var(--accent); color: #fff; font-weight: 800; font-size: 19px; display: flex; align-items: center; justify-content: center; }
+.app-header h1 { margin: 0; font-size: 20px; }
+.app-header .header-text p { margin: 0; color: var(--muted); font-size: 13px; }
+.header-status { text-align: right; display: flex; flex-direction: column; gap: 3px; align-items: flex-end; }
+.badge { font-size: 14px; font-weight: 700; padding: 0 12px; border-radius: 999px; min-height: 44px; display: inline-flex; align-items: center; gap: 6px; }
+.header-status { display: flex; flex-direction: row; align-items: center; gap: 8px; }
+.badge-view { background: #E8EDF1; color: #37424E; }
+.badge-editor { background: #E9ECEF; color: #333C46; }
+.save-status { font-size: 14px; color: var(--muted); min-height: 1em; white-space: nowrap; }
+@media (max-width: 380px) { .save-status { display: none; } .save-status.fresh { display: inline; } }
+
+/* tabs */
+.tabs { display: flex; gap: 6px; padding: 10px 12px 0; max-width: 1024px; margin: 0 auto; }
+.tabs button { border: 1px solid var(--line); background: #EEF1F4; padding: 10px 16px; font-size: 15.5px; font-weight: 600; border-radius: 10px; cursor: pointer; min-height: 48px; color: var(--ink); }
+.tab-ic { display: inline-flex; }
+.tab-ic svg { width: 24px; height: 24px; }
+.btn svg.ic { width: 20px; height: 20px; vertical-align: -4px; margin-right: 6px; }
+.tabs button.active { background: var(--surface); color: var(--accent); border-color: var(--accent); }
+.tab-ic { margin-right: 6px; }
+main { max-width: 1024px; margin: 10px auto 24px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 18px 26px; }
+.load-failed { text-align: center; padding: 48px 16px; }
+.load-failed .btn { min-height: 54px; padding: 12px 34px; font-size: 17px; }
+body.load-failed main > section { display: none !important; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+h2 { margin: 2px 0 6px; font-size: 20px; }
+h3 { margin: 16px 0 8px; font-size: 17px; }
+.hint { color: var(--muted); font-size: 16px; margin: 4px 0 12px; line-height: 1.5; }
+
+/* crafts */
+.craft-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; margin-bottom: 16px; }
+.craft-btn { border: 1.5px solid var(--line); background: var(--surface); border-radius: var(--radius); padding: 12px; font-size: 16px; font-weight: 600; cursor: pointer; text-align: left; min-height: 56px; color: var(--ink); position: relative; display: flex; gap: 6px; align-items: flex-start; min-width: 0; }
+.craft-check { flex: none; width: 20px; text-align: center; font-weight: 800; font-size: 18px; line-height: 1; }
+.craft-text { flex: 1; min-width: 0; overflow-wrap: break-word; }
+.craft-btn small { display: block; font-weight: 400; color: var(--muted); font-size: 14px; margin-top: 2px; }
+.craft-btn.selected { border: 2px solid #2457A6; background: #E8EEF8; color: #1B4382; }
+.craft-btn.selected small { color: #1B4382; }
+
+/* kits stepper + chips */
+.kits-block { margin-bottom: 8px; }
+.kits-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.kits-row > label { font-weight: 600; font-size: 16px; }
+.stepper { display: flex; align-items: stretch; border: 1.5px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+.stepper button { width: 54px; min-height: 54px; font-size: 24px; font-weight: 700; background: var(--surface); border: none; color: var(--accent); cursor: pointer; }
+.stepper input { width: 76px; text-align: center; font-size: 24px; font-weight: 800; border: none; border-left: 1px solid var(--line); border-right: 1px solid var(--line); color: var(--ink); -moz-appearance: textfield; appearance: textfield; }
+.stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.kits-chip { border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px; padding: 9px 18px; font-size: 15.5px; font-weight: 600; cursor: pointer; min-height: 44px; color: var(--ink); }
+.kits-chip.selected { background: #E8EEF8; color: #1B4382; border: 2px solid #2457A6; }
+.kits-chip.selected::before { content: "✓ "; font-weight: 800; }
+.sku-box { font-size: 16.5px; margin-top: 10px; }
+.field-error { color: var(--red); font-weight: 600; min-height: 1.2em; font-size: 16px; }
+.field-error:empty { min-height: 0; margin: 0; }
+.warning { background: var(--amber-bg); border: 1px solid #E7C46A; border-radius: 10px; padding: 10px 14px; margin: 10px 0; font-size: 16px; }
+
+/* buttons */
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; align-items: center; }
+.btn { border: 1.5px solid var(--line); background: var(--surface); border-radius: 10px; padding: 10px 16px; font-size: 16px; font-weight: 600; cursor: pointer; min-height: 48px; color: var(--ink); }
+.btn:hover { background: #F1F3F0; }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-dark); }
+.btn-primary:disabled { background: #E8EEF8; color: #1B4382; border: 1.5px dashed #2457A6; opacity: 1; cursor: not-allowed; }
+.btn-secondary { background: var(--surface); }
+.btn-quiet { border: none; background: none; color: var(--accent); min-height: 44px; padding: 8px; }
+.btn-danger { background: var(--surface); border-color: #E3B6B1; color: var(--red); }
+.chip-btn[aria-pressed="true"] { background: #E8EEF8; border: 2px solid #2457A6; color: #1B4382; }
+.chip-btn[aria-pressed="true"]::before { content: "✓ "; font-weight: 800; }
+body.view-only .editor-only { display: none !important; }
+body.view-only .inv-chev { display: none; }
+.editor-note { display: none; }
+body.view-only .editor-note { display: block; }
+
+/* pack list */
+.list-head { display: flex; align-items: center; gap: 12px; }
+.list-head h3 { margin: 8px 0; }
+.progress-text { color: var(--muted); font-size: 14.5px; }
+.list-head .btn-quiet { margin-left: auto; font-size: 15px; }
+.hand-line [data-remove] { min-width: 44px; min-height: 44px; }
+.progress-bar { height: 6px; background: var(--line); border-radius: 3px; margin: 4px 0 10px; }
+.progress-line { display: flex; align-items: center; gap: 10px; margin: 2px 0 8px; }
+.progress-line .progress-bar { flex: 1; margin: 0; }
+.list-tools { display: flex; gap: 8px; margin-bottom: 8px; }
+.list-tools .btn { flex: 1; min-height: 44px; white-space: nowrap; }
+#pack-warning { padding: 0 14px; }
+.warn-toggle { display: flex; align-items: center; width: 100%; min-height: 44px; background: none; border: none; padding: 0; font: inherit; font-weight: 700; color: inherit; text-align: left; cursor: pointer; }
+.warn-full { padding-bottom: 10px; }
+.warn-full .short-list { margin: 0; padding-left: 20px; font-size: 16px; line-height: 1.5; }
+.warn-full p { margin: 6px 0 0; }
+.progress-bar i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 3px; transition: width .15s; }
+.data-table { border-collapse: collapse; width: 100%; margin: 6px 0; }
+.data-table th, .data-table td { border-bottom: 1px solid var(--line); padding: 10px 8px; text-align: left; font-size: 16.5px; }
+.data-table th { background: #F1F3F6; font-size: 14px; color: var(--muted); }
+.data-table td.num, .data-table th.num { text-align: right; font-weight: 700; }
+.data-table tbody tr { cursor: pointer; }
+.data-table input[type="checkbox"] { width: 28px; height: 28px; accent-color: var(--accent); cursor: pointer; }
+tr.checked-row td { color: var(--muted); }
+tr.checked-row td .row-name { text-decoration: line-through; }
+.short { color: var(--red); font-weight: 800; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.boxes-line { display: flex; align-items: center; gap: 10px; background: var(--accent-soft); border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 6px 6px 14px; margin: 0 0 10px; font-size: 16px; }
+.boxes-line[hidden] { display: none !important; }
+.boxes-line span { flex: 1; }
+.boxes-edit { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; border: 1px dashed var(--line); border-radius: var(--radius); padding: 8px 14px; margin: 0 0 10px; font-size: 15.5px; }
+.boxes-edit[hidden] { display: none !important; }
+.toggle-row { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 16px; min-height: 48px; cursor: pointer; }
+.toggle-row input[type="checkbox"] { width: 26px; height: 26px; accent-color: var(--accent); }
+.box-add-row { display: flex; align-items: center; gap: 8px; margin: 10px 0 4px; }
+.box-add-row input { flex: 1; min-width: 0; height: 48px; border: 1.5px solid var(--line); border-radius: 10px; padding: 0 12px; font-size: 16px; }
+.box-rule-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px dashed var(--line); font-size: 15.5px; }
+.box-rule-row span { flex: 1; }
+.box-add { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.box-add select { height: 48px; border: 1.5px solid var(--line); border-radius: 10px; padding: 0 10px; font-size: 16px; background: var(--surface); max-width: 100%; }
+.box-add input[type="number"] { width: 170px; max-width: 100%; height: 48px; border: 1.5px solid var(--line); border-radius: 10px; padding: 0 10px; font-size: 16px; }
+.action-bar { display: flex; gap: 8px; margin-top: 10px; }
+.action-bar .btn { min-height: 48px; font-size: 16.5px; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.action-bar .btn-primary { flex: 1; }
+
+/* inventory */
+.search-box { width: 100%; height: 50px; border: 1.5px solid var(--line); border-radius: var(--radius); padding: 0 14px; font-size: 16.5px; margin: 4px 0 6px; background: var(--surface); }
+/* Round 2 item 3: the filter chips wrap instead of scrolling sideways.
+   The old nowrap + overflow-x auto row parked "By bin" (last chip) off
+   the right edge on phones, reachable only by a sideways swipe. Chips
+   keep their natural width (flex: none below) and wrap to a 2nd row
+   when they don't fit; overflow-x visible means any future overflow
+   shows as a layout failure instead of a hidden scroller. */
+.inv-filters { display: flex; gap: 8px; margin: 2px 0 8px; flex-wrap: wrap; overflow-x: visible; padding-bottom: 4px; }
+.inv-filters .chip-btn { flex: none; white-space: nowrap; }
+.inv-filters .chip-btn[aria-pressed="true"] { background: #E8EEF8; color: #1B4382; border: 2px solid #2457A6; }
+.inv-actions { align-items: flex-start; }
+.print-menu-wrap { position: relative; display: inline-block; margin-left: auto; }
+.print-menu { position: fixed; left: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 10px 30px rgba(0,0,0,.16); padding: 6px; display: flex; flex-direction: column; gap: 4px; z-index: 90; min-width: 240px; max-width: calc(100vw - 32px); }
+#btn-reorder { flex: 1; }
+.inv-actions { flex-wrap: nowrap; }
+body.view-only .inv-actions { display: none; }
+#btn-delivery { flex: 1; }
+#btn-print-menu { width: 48px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.print-menu[hidden] { display: none !important; }
+.print-menu .btn { justify-content: flex-start; }
+.inv-group { margin: 18px 0; }
+.inv-group h3 { border-bottom: 2px solid var(--accent); padding: 8px 2px 4px; position: sticky; top: 0; z-index: 5; background: var(--bg); display: flex; justify-content: space-between; align-items: baseline; }
+.inv-onhand { font-size: 14px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.inv-bin { color: var(--muted); font-size: 14px; font-weight: 700; white-space: nowrap; margin-left: 6px; }
+.row-bin { color: var(--muted); font-size: 14px; font-weight: 700; white-space: nowrap; }
+.inv-item { border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 8px; background: var(--surface); }
+.inv-main { display: flex; align-items: center; gap: 10px; padding: 12px 14px; min-height: 60px; cursor: pointer; width: 100%; background: none; border: none; text-align: left; font: inherit; color: inherit; }
+.inv-name { font-weight: 550; font-size: 16.5px; flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.inv-qty { margin-left: auto; font-size: 22px; font-weight: 800; flex: none; }
+.inv-chev { color: var(--muted); font-size: 14px; flex: none; }
+.inv-bin { flex: none; }
+.low-badge { background: var(--amber-bg); color: var(--amber); font-weight: 700; font-size: 14px; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.out-badge { background: var(--red-bg); color: var(--red); }
+.inv-panel { border-top: 1.5px solid var(--accent); padding: 12px 14px 14px; }
+.inv-panel .seg { display: flex; gap: 8px; margin-bottom: 10px; }
+.inv-panel .seg button { flex: 1; min-height: 46px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface); font-size: 15px; font-weight: 600; cursor: pointer; color: var(--ink); }
+.inv-panel .seg button.on { background: #E8EEF8; color: #1B4382; border: 2px solid #2457A6; }
+.inv-panel .seg button.on::before { content: "✓ "; font-weight: 800; }
+.inv-panel .inrow { display: flex; gap: 8px; }
+.inv-panel input { flex: 1; height: 50px; border: 1.5px solid var(--line); border-radius: 10px; font-size: 18px; padding: 0 12px; min-width: 0; }
+.inv-panel .go { width: 118px; height: 50px; border: none; border-radius: 10px; background: var(--accent); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; }
+.inv-panel .panel-note { color: var(--muted); font-size: 14px; margin-top: 8px; }
+.count-entry { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 16px; margin: 12px 0; background: #FAFBFC; }
+.count-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 6px 0; border-bottom: 1px dashed var(--line); font-size: 15.5px; }
+.count-row input { width: 110px; height: 44px; font-size: 16px; padding: 4px 10px; border: 1.5px solid var(--line); border-radius: 8px; }
+
+/* history */
+.history-entry { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 16px; margin: 10px 0; background: var(--surface); }
+.history-entry.undone .history-title { color: #596370; }
+.history-entry.undone .history-date { color: #596370; }
+.history-entry.undone .history-effects { opacity: .8; }
+.history-head { display: flex; gap: 10px; align-items: baseline; }
+.type-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; position: relative; top: 1px; }
+.history-title { font-weight: 700; font-size: 16.5px; }
+.history-date { margin-left: auto; color: var(--muted); font-size: 14px; text-align: right; white-space: nowrap; }
+.history-effects { color: var(--muted); font-size: 16px; margin-top: 4px; line-height: 1.5; }
+.history-effects details { margin-top: 2px; }
+.history-effects summary { cursor: pointer; color: var(--accent); font-weight: 600; min-height: 44px; }
+details > summary { min-height: 44px; box-sizing: border-box; padding-top: 10px; padding-bottom: 10px; cursor: pointer; }
+.history-actions { margin-top: 8px; display: flex; gap: 8px; align-items: center; }
+.history-actions button { min-height: 44px; padding: 8px 14px; font-size: 15px; }
+.btn-undo { margin-left: auto; color: var(--red); border-color: #E3B6B1; }
+.undone-tag { font-weight: 700; color: var(--red); margin-top: 4px; }
+
+/* settings + misc */
+.card { border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; margin: 14px 0; background: #FAFBFC; }
+.card h3 { margin-top: 0; }
+.card label { font-weight: 600; font-size: 15px; display: block; margin-bottom: 10px; }
+.card input[type="text"], .card input[type="password"] { font-size: 16.5px; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 10px; margin-top: 4px; width: 100%; min-height: 48px; }
+.repo-row { display: flex; gap: 14px; flex-wrap: wrap; }
+.repo-row label { flex: 1 1 200px; }
+.help-list li { margin: 6px 0; font-size: 15px; }
+.error-banner { background: var(--red-bg); border: 1px solid #E3B6B1; color: #7C1D16; max-width: 1024px; margin: 10px auto 0; padding: 12px 16px; border-radius: 10px; font-weight: 600; font-size: 16px; }
+.toast[hidden] { display: none !important; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: 76px; background: var(--ink); color: #fff; padding: 12px 18px; border-radius: var(--radius); font-weight: 600; font-size: 15.5px; box-shadow: 0 6px 22px rgba(0,0,0,.28); z-index: 60; max-width: min(92vw, 560px); display: flex; align-items: center; gap: 14px; pointer-events: none; }
+.toast button { background: none; border: none; color: #FFD94D; font-weight: 800; font-size: 15.5px; cursor: pointer; min-height: 44px; padding: 4px 6px; letter-spacing: .03em; pointer-events: auto; flex: none; white-space: nowrap; }
+.toast-msg { flex: 1; min-width: 0; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.toast-sku { flex: none; white-space: nowrap; }
+/* A SKU must never break mid-code ("BM-" / "6") — in toasts and buttons. */
+.nowrap { white-space: nowrap; }
+/* in-app confirm sheet (replaces window.confirm / window.prompt) */
+.sheet-backdrop { position: fixed; inset: 0; background: rgba(20, 24, 28, .48); z-index: 80; display: flex; align-items: flex-end; justify-content: center; }
+.sheet-backdrop[hidden] { display: none !important; }
+.sheet { background: var(--surface); width: 100%; max-width: 560px; border-radius: 18px 18px 0 0; padding: 22px 20px calc(18px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 32px rgba(0,0,0,.25); }
+/* Item 2: sheets never push their buttons below the fold — the sheet
+   caps at viewport height, the content scrolls, the buttons stay
+   pinned below the scroll area. Spacing is unchanged: the actions
+   wrapper adds no gap or padding, the buttons keep their own margins. */
+.sheet { display: flex; flex-direction: column; max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); }
+.sheet-scroll { overflow-y: auto; min-height: 0; }
+.sheet-actions { display: flex; flex-direction: column; flex: none; }
+.sheet h3 { font-size: 28px; margin: 0 0 4px; line-height: 1.15; }
+.sheet-sub { font-size: 17px; font-weight: 700; margin: 0 0 6px; }
+.sheet-summary { color: var(--muted); font-size: 15.5px; margin: 0 0 16px; line-height: 1.5; }
+.sheet-input-wrap { display: block; font-weight: 600; font-size: 15px; margin-bottom: 14px; }
+.sheet-input-wrap[hidden] { display: none !important; }
+.sheet-input-wrap input { width: 100%; height: 54px; font-size: 20px; border: 1.5px solid var(--line); border-radius: 10px; padding: 0 12px; margin-top: 6px; }
+.sheet .btn { width: 100%; min-height: 54px; font-size: 17px; margin-top: 8px; }
+#sheet-primary.danger { background: #fff; color: var(--red); border-color: var(--red); }
+/* Batch C item 3: duplicate-check YES is green (NO stays danger red). */
+#sheet-primary.success { background: #1A7336; border-color: #1A7336; color: #fff; }
+#sheet-cancel.danger { background: #fff; color: var(--red); border-color: var(--red); }
+/* Multi-craft queue (brief item 1): lines mirror the Bulk hand-line rows;
+   duplicate lines get a warm highlight until the YES/NO pop-up resolves. */
+.queue-block { margin: 14px 0 4px; }
+/* Brief item 4: the list header row carries the count and the Clear all
+   link, so Clear all is visible at 2+ lines without scrolling to the end. */
+.list-head-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 14px 0 4px; }
+.list-head-row h3 { font-size: 17px; margin: 0; }
+.list-head-row .btn { min-height: 44px; }
+.queue-line { display: flex; align-items: stretch; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 8px 8px 12px; margin: 8px 0; font-weight: 600; }
+.queue-main { flex: 1; min-width: 0; }
+.queue-line.dup { background: #FFF4E5; border-color: #E8A838; }
+.queue-line .queue-kits { min-height: 44px; font-size: 16px; font-weight: 600; border: 1.5px solid var(--line); border-radius: 8px; padding: 0 6px; background: #fff; }
+.queue-line .queue-remove { min-width: 44px; min-height: 44px; flex: none; align-self: center; }
+.queue-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+/* Retest item 1: the queue row was the only flex row missing its
+   [hidden] override (single-actions, boxes-line and boxes-edit all have
+   one), so the author display:flex beat the UA hidden rule and the row
+   showed on fresh screens — 7 buttons at once. */
+.queue-actions[hidden] { display: none !important; }
+.queue-actions .btn { flex: 1; min-height: 48px; }
+/* Brief 5c: the single-craft action row — exactly Queue / Print / Hand pack. */
+.single-actions { display: flex; gap: 8px; margin: 14px 0 4px; }
+.single-actions[hidden] { display: none !important; }
+.single-actions .btn { flex: 1; min-height: 48px; padding: 10px 8px; }
+/* Brief 5a: the manual kits box replaces the chips, with a way back. */
+#pack-kits-manual { display: flex; gap: 8px; align-items: center; margin: 8px 0; }
+#pack-kits-manual[hidden] { display: none !important; }
+#pack-kits-manual label { font-weight: 600; white-space: nowrap; }
+#pack-kits-manual input { flex: 1; min-width: 0; min-height: 44px; padding: 8px 10px; border: 1px solid #C9CED6; border-radius: 8px; font-size: 16px; }
+.queue-progress { font-size: 17px; font-weight: 700; margin: 0 0 10px; }
+.sheet-short { background: var(--red-bg); border: 2px solid var(--red); color: var(--red); border-radius: 12px; padding: 10px 12px; margin: 0 0 14px; text-align: left; }
+.sheet-short-title { font-size: 17px; font-weight: 700; margin: 0 0 4px; }
+.sheet-short ul { margin: 0; padding-left: 18px; font-size: 15.5px; line-height: 1.45; }
+.sheet-lines { margin: 0 0 14px; padding-left: 18px; font-size: 16px; line-height: 1.55; text-align: left; }
+.sheet-lines .flag { color: var(--amber); font-weight: 700; }
+@media (min-width: 701px) { .sheet-backdrop { align-items: center; } .sheet { border-radius: 18px; } }
+/* Desktop brief item 1 (wider screens): the header's CONTENTS align with
+   the 1024px column (the bar itself still spans the window), the toast
+   sits 24px off the bottom (no phone tab bar to clear), and in the
+   tablet band the card keeps side margins instead of touching the edges */
+@media (min-width: 701px) {
+  .app-header { padding-left: max(31px, calc((100% - 1024px) / 2 + 19px)); padding-right: max(31px, calc((100% - 1024px) / 2 + 19px)); }
+  .toast { bottom: 24px; }
+  /* The Bulk Add nudge scrolls Record clear of the fixed toast; without
+     bottom padding the desktop Bulk tab is barely taller than the
+     viewport and the scroll clamps short (38px of 87 needed). */
+  #tab-bulk { padding-bottom: 260px; }
+}
+@media (min-width: 701px) and (max-width: 1051px) {
+  main, .error-banner { margin-left: 12px; margin-right: 12px; }
+}
+@media (hover: hover) {
+  .btn:not(:disabled):hover { filter: brightness(0.96); }
+  .tabs button:hover { color: var(--accent); }
+  .craft-btn:hover { border-color: var(--accent); }
+  .kits-chip:hover, .chip:hover { background: var(--accent-soft); }
+  .inv-item:hover, .history-entry:hover { background: #FAFBFC; }
+}
+#print-area { display: none; }
+
+/* phone: bottom tab bar, sticky pack action bar */
+@media (max-width: 700px) {
+  body { padding-bottom: 64px; }
+  .tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: var(--surface); border-top: 1px solid var(--line); padding: 0; margin: 0; max-width: none; gap: 0; }
+  .tabs button { flex: 1; border: none; background: none; border-radius: 0; min-height: 58px; font-size: 14px; padding: 6px 2px; display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--muted); }
+  .tabs button.active { color: var(--accent); background: none; }
+  .tab-ic { margin: 0; line-height: 1.1; }
+  main { margin: 8px 8px 16px; padding: 14px 12px 20px; }
+  #tab-pack .action-bar, #tab-hand .action-bar, #tab-bulk .action-bar { position: sticky; bottom: 66px; background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -4px 14px rgba(31,35,40,.08); padding: 10px 0; margin-top: 0; }
+  /* v2 B3: two-column craft cards + one-row kit chips, so the picker fits a small phone */
+  .craft-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Polish item 2: every picker row the same height on phones — the
+     two-line height (measured 80–82px for a wrapped name) as the floor,
+     so a wrapped name never makes its row taller than the rest. */
+  .craft-btn { min-height: 84px; }
+  /* Polish item 1: the hand-pack checklist name stays on one line at
+     360–390. Blanket nowrap was tried first and regressed the layout
+     audit: CAK's long names forced the table to 406px (horizontal
+     overflow at 360/390). Instead the bin tag goes on its own line
+     under the name, so the name column only needs the name's own
+     width — long names still wrap as before, short ones stay whole. */
+  #pack-table td { padding: 10px 6px; }
+  #pack-table td .row-bin { display: block; }
+  /* Polish item 1, third attempt: bin-block alone did not free the name
+     (clay still wrapped at all widths in run 2) — the side columns were
+     still eating the name's room. Shrink only the side columns: smaller
+     checkbox with no UA margins (the whole row toggles on tap, so the
+     box itself need not be the full target) and tighter num padding
+     on headers and values alike (the header text drives num width). */
+  #pack-table input[type="checkbox"] { width: 24px; height: 24px; margin: 0; }
+  /* Polish item 1, fourth attempt: run 3 flipped 375/390 to pass and
+     measured the 360 deficit exactly — name 157px vs 151px of cell
+     content, a 6px gap. Free 16px more from the side columns only:
+     2px side padding on the checkbox cell and the num columns. Those
+     columns sit at their max width, so the freed room flows to the
+     wrapping name column. */
+  #pack-table td:first-child { padding-left: 2px; padding-right: 2px; }
+  #pack-table th.num, #pack-table td.num { padding-left: 2px; padding-right: 2px; }
+  /* Fix-round item 11: phone checklist names on one line, by layout
+     only (no font change). Auto layout let the header text ("On hand")
+     and long counts size the side columns, starving the name column
+     until long names wrapped. Fixed layout pins the side columns
+     narrow — tick 28px (24px box + 2px padding each side), Need 40px
+     and On hand 48px (3- and 4-digit counts at 16.5px bold) — so the
+     remainder flows to the name, and the name cell's side padding
+     trims 6px -> 4px for 4px more. Headers may wrap ("On hand" to two
+     lines) — only names must hold one line. Counts of 5+ digits can
+     overflow the num columns; real warehouse counts are far smaller. */
+  #pack-table { table-layout: fixed; }
+  #pack-table th:first-child, #pack-table td:first-child { width: 28px; }
+  #pack-table th:nth-child(3), #pack-table td:nth-child(3) { width: 40px; }
+  #pack-table th:nth-child(4), #pack-table td:nth-child(4) { width: 48px; }
+  #pack-table td:nth-child(2) { padding-left: 4px; padding-right: 4px; }
+  .kits-block .chips { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+  /* Pack's chips toggle with the "+" manual box: hidden must win over the
+     grid display above, or "+" never hides the chips at phone widths. */
+  .kits-block .chips[hidden] { display: none !important; }
+  /* Pack carries a seventh chip ("+") after 36. */
+  #pack-chips { grid-template-columns: repeat(7, 1fr); }
+  .kits-block .kits-chip { padding: 9px 2px; text-align: center; }
+  /* Item 11: the pack table's last row clears the sticky Complete bar + nav. */
+  #pack-order { padding-bottom: 150px; }
+  #tab-pack { padding-bottom: 220px; }
+  /* Item 1 fold-in (user): pin the queue row above the fixed tab bar
+     like the other action bars, so Done is always tappable on first
+     paint. Fixed, not sticky: sticky would not lift the row on first
+     paint — the run-2 probe showed Done's in-flow bottom at 654 of
+     664, its center (616) under the tab bar's top edge (605). The
+     220px padding lets the last queue line scroll fully above the
+     pinned row (row ~126px + 66px tab clearance + slack). During a
+     walk the row unpins (static) so it never covers the sticky
+     Complete bar, which shares the same bottom band. */
+  #pack-queue-actions { position: fixed; left: 20px; right: 20px; bottom: 66px; background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -4px 14px rgba(31,35,40,.08); padding: 10px 0; margin-top: 0; }
+  #pack-queue-actions.walking { position: static; }
+  /* Brief item 1: Bulk content gets bottom padding equal to the sticky bar
+     plus the fixed nav, so no form/list line ever sits under either. The
+     scroll margin lets a newly added card scroll fully into view above
+     the bar, toast and nav (item 2). */
+  #tab-bulk { padding-bottom: 150px; }
+  /* scroll-margin must clear bar + toast + nav (the bar sits directly
+     below the new card in flow, so the card has to rise past all three) */
+  #bulk-lines > *, #pack-queue > * { scroll-margin-bottom: 210px; }
+  /* Polish item 2 fallout: the taller picker pushed the order section's
+     in-flow buttons down, so a minimal scroll parks Done / Check-all
+     under the sticky action bar or the fixed tab bar — the click then
+     hits the bar (Done) or a tab button (Check-all → leave-rule sheet).
+     Same 210px clearance for those buttons. */
+  #pack-boxes button, #pack-boxes-edit button, #pack-checklist .list-tools button { scroll-margin-bottom: 210px; }
+  /* ...but scroll-margin only matters when a scroll happens. Done was
+     already fully inside the viewport (y 691–735 of 844) yet covered by
+     the bar, so no scroll fired and the margin never applied. The
+     scroll-padding below redefines "visible" for scroll-into-view: a
+     button must sit above the ~134px bar+tab band to count as visible,
+     so the browser scrolls it clear instead of leaving it parked. */
+  html { scroll-padding-bottom: 210px; }
+  /* Fix-round (batch c): the Complete title wraps to 2 lines max instead
+     of one-line ellipsis — the "Hand packed …" title is 5 chars longer
+     than "Packed …" and tipped into ellipsis at 390 (batch-c run 1).
+     Phone toast spans 92vw (4vw margins) so message + SKU + UNDO fit. */
+  .toast { bottom: 132px; left: 4vw; right: 4vw; transform: none; max-width: none; font-size: 12.5px; padding: 10px 12px; gap: 6px; }
+  .toast button { font-size: 13px; }
+  /* Brief item 14: the header status must never run off the right edge.
+     Shrink the header spacing/type on phones so badge + status fit one
+     row at 390px; the wrap below is only a fallback for wider renderings
+     (it wraps instead of clipping). The status must NOT be forced to its
+     own row — flex-basis 100% did that and pushed Inventory down 24px. */
+  .app-header { padding: 10px 12px; gap: 12px; }
+  .badge { padding: 0 10px; }
+  .header-status { flex-wrap: wrap; justify-content: flex-end; gap: 6px; min-width: 0; }
+  .save-status { text-align: right; font-size: 13px; }
+  .header-text p { display: none; }
+}
+
+/* ---------- 4x6 thermal label printing (desktop brief items 2+3: one
+   craft per page, checklist style — big craft title, ONE subtitle line,
+   full black grid, no instructions) ---------- */
+@media print {
+  @page { size: 4in 6in; margin: 0.13in 0.13in 0.22in; } /* the bottom margin is the thermal cutoff guard — it applies to EVERY page, continuations included */
+  body { background: #fff; padding: 0; }
+  body > *:not(#print-area) { display: none !important; }
+  #print-area { display: block; padding: 0; font-family: Arial, Helvetica, sans-serif; color: #000; }
+  #print-area .print-page { break-before: page; position: relative; }
+  #print-area .print-page:first-child { break-before: auto; }
+  /* Round 2 item 2: print tables use SEPARATE borders (spacing 0) with
+     bottom+left cell borders and a right border on each row's last cell.
+     In collapse mode the bottom border is SHARED with the next page's
+     first row, so Chrome splits it across the break (the old half-height
+     page-1 line). In separate mode each cell owns its borders outright,
+     so a fragment page's bottom edge is a whole 1.5pt border. Widths and
+     heights are unchanged: spacing 0, one 1.5pt line per boundary (the
+     left border of the right-hand cell is the vertical separator; the
+     bottom border is the horizontal one), and no table-level border
+     that could double with a cell border. The title row keeps its
+     border-none + 2.5pt bottom (its rule wins on specificity/order). */
+  #print-area table { border-collapse: separate; border-spacing: 0; width: 100%; }
+  #print-area th, #print-area td { font-size: 12.5pt; padding: 4.5pt 6pt; text-align: left; color: #000; border: none; border-bottom: 1.5pt solid #000; border-left: 1.5pt solid #000; line-height: 1.3; }
+  #print-area tr td:last-child, #print-area tr th:last-child { border-right: 1.5pt solid #000; }
+  #print-area thead { display: table-header-group; }
+  #print-area thead th { font-weight: 700; }
+  #print-area tbody tr { break-inside: avoid; }
+  #print-area tr.p-title th { border: none; border-bottom: 2.5pt solid #000; padding: 0 0 5pt; }
+  #print-area .label-title { font-size: 30pt; font-weight: 800; margin: 0; line-height: 1.1; }
+  #print-area .label-sub { font-size: 13.5pt; font-weight: 700; margin: 2pt 0 0; }
+  #print-area td.qty, #print-area th.qty { text-align: center; font-weight: 700; white-space: nowrap; }
+  #print-area td.qty.regular { font-weight: 400; }
+  /* Count-fit (item 9 follow-up): the count table's extra columns steal
+     width from Item under auto layout, so long names wrap to an extra
+     line and borderline sections (Blooming Mirrors) spill to a 2nd label
+     while the 2-column inventory sheet fits. Give Item its width back:
+     the handwriting cell was 0.95in — 0.65in still holds a 4-digit count —
+     and trim the Should-be cell's side padding (its width is its numbers,
+     so padding is its only slack). Text size and row height untouched. */
+  #print-area td.counted-cell { width: 0.65in; }
+  #print-area td.qty.regular { padding-left: 3pt; padding-right: 3pt; }
+  #print-area td.tick, #print-area th.tick { width: 16pt; text-align: center; }
+  /* Bins-on sheet fix: the Bin column is sized to "888", the widest
+     3-digit value at 12.5pt Arial bold (measured 20.86pt; the "Bin"
+     header at 20.14pt does not set the width), plus normal cell
+     padding — 21pt content width, down from 40pt, freeing ~19pt to the
+     Item column. No font size or row-height change. Bin codes longer
+     than this still display: auto layout grows the column past the CSS
+     width rather than clipping. Shared with count sheets, where it only
+     widens Item. */
+  #print-area td.bin { font-weight: 700; white-space: nowrap; width: 21pt; }
+  #print-area .tick-box { display: inline-block; width: 10pt; height: 10pt; border: 1.5pt solid #000; }
+  #print-area tr.low td { font-weight: 700; }
+  #print-area tr.low td:first-child { border-left: 5pt solid #000; }
+  #print-area .low-tag { font-weight: 800; }
+  /* The footer is IN FLOW below the table (never absolutely positioned:
+     an abspos footer reserves no space, so it printed through the last
+     rows whenever the table reached it). break-inside keeps the block
+     whole — if it can't fit, it moves to a new page intact. */
+  #print-area .print-foot { margin-top: 8pt; border-top: 1.5pt solid #000; padding-top: 5pt; font-size: 12.5pt; break-inside: avoid; }
+  #print-area .print-foot .foot-boxes { font-weight: 700; margin-bottom: 2pt; }
+  /* Pack spill fix (MI/TAM): pack sheets only. Footer margin/padding +
+     title/subtitle spacing trims (~14pt) plus the single-line footer
+     (~16pt) recover ~30pt. Text size and row height untouched. */
+  /* Fix-round item 10: the double line above BOXES was the table's
+     bottom border PLUS this footer's own border-top (1.5pt each, 2pt
+     apart). Pack sheets drop the footer's border so the table border
+     is the single line; spacing (2pt/2pt) untouched. */
+  #print-area section.pack-sheet .print-foot { margin-top: 2pt; padding-top: 2pt; border-top: none; }
+  #print-area section.pack-sheet tr.p-title th { padding-bottom: 2pt; }
+  #print-area section.pack-sheet .label-sub { margin-top: 0; }
+  /* Height budget (BM-36-boxes, measured 2026-10-26): the 4.5pt cell
+     padding is the single biggest eater — 9pt × 13 rows = 117pt, more
+     than the title block and the footer combined. Trimming it to 2.5pt
+     vertical on pack sheets only recovers 52pt on BM (13 rows) and
+     48pt on MI, at the same 12.5pt text and 1.5pt borders; horizontal
+     padding stays 6pt so Item keeps its width. Count/inventory sheets
+     are untouched (their pagination is accepted as-is). */
+  #print-area section.pack-sheet th, #print-area section.pack-sheet td { padding-top: 2.5pt; padding-bottom: 2.5pt; }
+  /* New pack-sheet layout: header line 1 is the craft name full-width.
+     History: a flex row was tried first and REGRESSED MI (the date +
+     gap stole ~79pt from the name, wrapping "Miniature Interiors" to a
+     second title line and spilling its last row to page 2), and the
+     8pt absolute top-right Date that replaced it printed ON TOP of
+     long titles (Hafrashat Challah unreadable). Fix-round item 8:
+     Date now lives in-flow on subtitle line 2 at full subtitle size,
+     so it can never overlap the title and costs 0pt of height; the
+     absolute .label-date element and its rule are gone. The geometry
+     gate in check-print still guards title/subtitle overlap.
+     Title/subtitle sizes untouched. */
+  #print-area section.pack-sheet .label-title-row { position: relative; }
+  /* Fix-round item 9, FIXED in round 2 item 2: print tables now use
+     separate borders (see the table rule above), so the fragment-edge
+     bottom border prints whole on every page. History: the collapsed
+     table split its shared row border across breaks (Cakery page-1
+     bottom at 0.75pt vs 1.5pt). box-decoration-break: clone was tried
+     at table level and at cell level and fixed neither the line nor
+     the repeats, and it broke the repeated thead on page 2 (CI runs
+     40372731228, 40376472384) — do not reintroduce it. A repeating
+     tfoot row was also tried and rejected: it stacks its separator
+     and its edge into a 3pt band at every page bottom. */
+}
+
+/* Merged pack flow (2026-10-23): Print / Hand pack choice + batch hand-pack list */
+.pack-help { color: var(--muted); font-size: 16px; margin: 6px 0 0; }
+.hand-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 8px 8px 12px; margin: 8px 0; font-weight: 600; }
+
+/* Flow fix (2026-10-23): view-only tab gating + GitHub device sign-in */
+.tabs button[hidden] { display: none !important; }
+.badge-view { cursor: pointer; }
+.device-code { font-size: 30px; font-weight: 800; letter-spacing: 4px; text-align: center; margin: 10px 0 4px; }
+.card-sep { border: none; border-top: 1px solid var(--line); margin: 14px 0; }
+
+/* Recipe editor (sub-batch b): list rows + per-craft line editor. */
+.recipe-row { border-top: 1px solid var(--line); padding: 10px 0; }
+.recipe-row:first-child { border-top: none; }
+.recipe-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.recipe-code { color: #666; }
+.recipe-hidden { background: #eee; border-radius: 8px; padding: 1px 8px; font-size: 12px; }
+.recipe-count { color: #666; margin-left: auto; }
+.recipe-editor { margin-top: 10px; display: flex; flex-direction: column; gap: 10px; }
+.recipe-line { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.recipe-line select { flex: 1 1 140px; }
+.recipe-line input[type="number"] { width: 64px; }
+.recipe-new-item { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
