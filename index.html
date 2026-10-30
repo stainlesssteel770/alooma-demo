@@ -104,6 +104,12 @@
       </div>
       <div class="action-bar">
         <button id="btn-complete-pack" class="btn btn-primary editor-only" disabled>Choose a craft</button>
+        <!-- Fix 9: Cancel button for single hand-pack, next to Pack N more -->
+        <button id="btn-pack-cancel" class="btn editor-only" hidden>Cancel</button>
+      </div>
+      <div id="pack-completed" hidden>
+        <p class="completed-note"><strong id="pack-completed-text"></strong> packed ✓</p>
+        <button id="btn-pack-again" class="btn btn-primary">Start another order</button>
       </div>
       <p class="hint editor-note" hidden>View-only on this device — connect a GitHub token in Settings to record packing.</p>
     </div>
@@ -182,6 +188,7 @@
     </div>
     <div id="count-entry" class="count-entry" hidden>
       <h3>Enter counted numbers</h3>
+      <input type="search" id="count-search" class="search-box" placeholder="Search items…" aria-label="Search items to count">
       <p class="hint">Type the real counted number for any item you counted, leave the rest blank, then apply. Each changed item is logged as a count fix. Tip: tapping any item in the list also lets you receive stock, fix its count, or set its low-stock warning.</p>
       <div id="count-entry-list"></div>
       <div class="btn-row">
@@ -191,6 +198,7 @@
     </div>
     <div id="delivery-entry" class="count-entry" hidden>
       <h3>Receive a delivery</h3>
+      <input type="search" id="delivery-search" class="search-box" placeholder="Search items…" aria-label="Search items to receive">
       <p class="hint">Type how many of each item arrived, leave the rest blank, then save once. Each item received gets its own entry in History. Tip: tapping any item in the list also lets you receive stock, fix its count, or set its low-stock warning.</p>
       <div id="delivery-entry-list"></div>
       <div class="btn-row">
