@@ -162,17 +162,22 @@
     }
     return 0;
   }
-  /* The Inventory search box also filters the delivery / count forms:
-     rows hide in place (typed values are never wiped by a re-render) */
-  function filterEntryList(list) {
+  /* Fix 6: each entry form has its own search box at the top. Rows hide
+     in place (typed values are never wiped by a re-render). */
+  function entryQuery(inputId) {
+    var el = $(inputId);
+    return el ? el.value.trim().toLowerCase() : "";
+  }
+  function filterEntryList(list, query) {
     if (!list) return;
+    var q = query !== undefined ? query : invQuery;
     var head = null, headVisible = false;
     Array.prototype.forEach.call(list.children, function (el) {
       if (el.classList.contains("entry-head")) {
         if (head) head.style.display = headVisible ? "" : "none";
         head = el; headVisible = false;
       } else {
-        var show = !invQuery || (el.getAttribute("data-name") || "").indexOf(invQuery) >= 0;
+        var show = !q || (el.getAttribute("data-name") || "").indexOf(q) >= 0;
         el.style.display = show ? "" : "none";
         if (show) headVisible = true;
       }
@@ -686,7 +691,7 @@
     var checked = 0;
     boxes.forEach(function (cb) { if (cb.checked) checked++; });
     var total = boxes.length;
-    $("pack-progress").textContent = total ? checked + " of " + total + " checked" : "";
+    $("pack-progress").textContent = total ? checked + " of " + total + " packed" : "";
     $("pack-progress-fill").style.width = total ? Math.round(checked / total * 100) + "%" : "0";
     var btn = $("btn-complete-pack");
     var kitsNow = strictKits($("pack-kits").value);
@@ -694,11 +699,12 @@
     btn.disabled = !ready;
     if (!state.packCraft) btn.textContent = "Choose a craft";
     else if (!L.validKits(kitsNow)) btn.textContent = "Choose kits";
-    else if (!ready) btn.textContent = "Check " + (total - checked) + " more";
+    else if (!ready) btn.textContent = "Pack " + (total - checked) + " more";
     else btn.textContent = "Complete " + L.sku(state.packCraft, kitsNow);
-    $("btn-check-all").textContent = total > 0 && checked === total ? "Uncheck all" : "Check all";
+    $("btn-check-all").textContent = total > 0 && checked === total ? "Unpack all" : "Pack all";
   }
   var packMode = null; /* null until the packer taps Hand pack; "hand" shows the checklist */
+  var packCompleted = null; /* Fix 2: {craftId, kits} after a single hand-pack completes — the list stays on screen as completed until a new order starts */
   var queueMode = false; /* Packing's Queue mode: pick lines, Add, Print all / Hand pack all */
   var packKitsManual = false; /* kits entered by typing instead of chips */
   var bulkLines = []; /* [{craftId, kits}] queued on the Bulk import tab, in-memory only */
@@ -712,10 +718,64 @@
   /* Lines persist on-device (localStorage) until finished or cleared, so a
      reload never eats a started queue. The single-craft path is untouched:
      the queue sits alongside it, and a queue of one behaves like today. */
-  var packQueue = []; /* [{craftId, kits, printed}] in queue order */
+  var packQueue = []; /* [{craftId, kits, uid, printed}] in queue order */
   var queueHandIdx = -1; /* line being hand-packed, -1 = not hand-packing a queue */
   var queueHandTotal = 0; /* lines the current hand walk started with (for "Craft N of M") */
   var PACKQUEUE_LS = "alooma-demo.packqueue.v1";
+  /* Fix 1: hand-pack ticks are durable, keyed to the specific order. Queue
+     lines carry a uid (two identical lines keep separate ticks); a single
+     hand-pack gets a fresh uid each time it starts. Ticks clear on
+     Complete, on Cancel (Fix 9), or when the order is removed. */
+  var HANDTICKS_LS = "alooma.handticks.v1";
+  var handTicks = {}; /* {uid: [itemId, ...]} */
+  var singleHandUid = null; /* uid of the current single hand-pack, if any */
+  function newUid(p) { return p + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+  function loadHandTicks() {
+    try {
+      var raw = localStorage.getItem(HANDTICKS_LS);
+      var o = raw ? JSON.parse(raw) : null;
+      handTicks = (o && typeof o === "object" && !Array.isArray(o)) ? o : {};
+    } catch (e) { handTicks = {}; }
+    /* At load no single hand-pack can be active (its selection is in-memory
+       only), so drop orphaned single uids; keep only live queue uids. */
+    var live = {};
+    packQueue.forEach(function (ln) { if (ln.uid) live[ln.uid] = true; });
+    Object.keys(handTicks).forEach(function (uid) { if (!live[uid]) delete handTicks[uid]; });
+    try { localStorage.setItem(HANDTICKS_LS, JSON.stringify(handTicks)); } catch (e) {}
+  }
+  function persistHandTicks() {
+    /* prune: keep only the active single uid + current queue uids */
+    var keep = {};
+    if (singleHandUid && handTicks[singleHandUid]) keep[singleHandUid] = handTicks[singleHandUid];
+    packQueue.forEach(function (ln) { if (ln.uid && handTicks[ln.uid]) keep[ln.uid] = handTicks[ln.uid]; });
+    handTicks = keep;
+    try { localStorage.setItem(HANDTICKS_LS, JSON.stringify(handTicks)); } catch (e) { /* private mode etc. */ }
+  }
+  function clearHandTicks(uid) { if (uid && handTicks[uid]) { delete handTicks[uid]; persistHandTicks(); } }
+  function currentHandUid() {
+    if (queueHandIdx >= 0 && packQueue[queueHandIdx]) return packQueue[queueHandIdx].uid;
+    if (packMode === "hand") return singleHandUid;
+    return null;
+  }
+  function saveHandTicks() {
+    var uid = currentHandUid(); if (!uid) return;
+    var ids = [];
+    $("pack-table").querySelectorAll("tbody input[type=checkbox]").forEach(function (cb) {
+      if (cb.checked) ids.push(cb.getAttribute("data-item"));
+    });
+    handTicks[uid] = ids;
+    persistHandTicks();
+  }
+  function applyHandTicks() {
+    var uid = currentHandUid(); if (!uid || packMode !== "hand") return;
+    var ids = handTicks[uid]; if (!ids || !ids.length) return;
+    var map = {};
+    ids.forEach(function (id) { map[id] = true; });
+    $("pack-table").querySelectorAll("tbody input[type=checkbox]").forEach(function (cb) {
+      if (map[cb.getAttribute("data-item")]) { cb.checked = true; cb.closest("tr").classList.add("checked-row"); }
+    });
+    updatePackProgress();
+  }
   /* ---------- brief item 3: Packed by / Counted by (Batch B: Settings) ---------- */
   /* Optional names, never blocking. Each is stored per device under its own
      key (the packer and the counter aren't always the same person), set in
@@ -731,7 +791,8 @@
       var arr = JSON.parse(raw);
       if (!Array.isArray(arr)) return;
       packQueue = arr.filter(function (ln) { return ln && L.craftById(ln.craftId) && L.validKits(ln.kits); })
-        .map(function (ln) { return { craftId: ln.craftId, kits: ln.kits }; });
+        .map(function (ln) { return { craftId: ln.craftId, kits: ln.kits, uid: ln.uid || newUid("q") }; });
+      persistPackQueue(); /* stick migrated uids */
     } catch (e) { packQueue = []; }
   }
   function endQueueWalk() { queueHandIdx = -1; queueHandTotal = 0; }
@@ -752,7 +813,8 @@
     wrap.innerHTML = "";
     /* Brief item 4: the count lives in the list's header row, beside Clear all. */
     $("pack-queue-count").textContent = packQueue.length;
-    if (!packQueue.length) {
+    /* Fix 9: hide the empty-queue message during a single hand-pack. */
+    if (!packQueue.length && packMode !== "hand") {
       wrap.innerHTML = '<p class="hint">No orders in the queue yet — pick a craft and kit amount above, then tap Queue.</p>';
     }
     packQueue.forEach(function (ln, i) {
@@ -788,7 +850,9 @@
         var i = parseInt(b.getAttribute("data-qidx"), 10);
         if (queueHandIdx === i) endQueueWalk();
         else if (queueHandIdx > i) queueHandIdx--;
+        var removed = packQueue[i];
         packQueue.splice(i, 1);
+        clearHandTicks(removed && removed.uid); /* Fix 1 */
         persistPackQueue(); renderPack();
       });
     });
@@ -813,6 +877,10 @@
     $("pack-queue-actions").hidden = !queueMode && !saved && !walking;
     $("btn-queue-add").hidden = walking || saved;
     $("btn-queue-done").hidden = saved;
+    /* Fix 5: the mode button reads Cancel when the queue is empty and Done
+       once lines exist — the label tracks the queue live; the tap behavior
+       (leave Queue mode) is unchanged. */
+    $("btn-queue-done").textContent = packQueue.length > 0 ? "Done" : "Cancel";
     $("btn-queue-print").hidden = walking || queueMode;
     $("btn-queue-hand").hidden = walking || queueMode;
     /* Item 1 fold-in: the pinned queue row unpins during a walk so it
@@ -839,7 +907,13 @@
   function renderPack() {
     renderQueue();
     craftButtons("pack-crafts", state.packCraft, function (id) {
+      /* Fix 9: lock selection during single hand-pack. Tapping does nothing. */
+      if (packMode === "hand" && !packCompleted) {
+        toast("Cancel this pack to change it");
+        return;
+      }
       if (queueHandIdx >= 0) endQueueWalk(); /* picking a different craft mid-walk ends the walk; queued lines stay */
+      if (packCompleted) packCompleted = null; /* Fix 2: re-pick after Complete starts a new order */
       state.packCraft = id;
       /* Polish item 5: a pick with a saved queue enters Queue mode, so
          the row shows exactly Add + Done — never the single-actions
@@ -848,9 +922,18 @@
       if (packQueue.length > 0 && queueHandIdx < 0) queueMode = true;
       renderPack();
     });
+    /* Fix 9: lock craft cards + kit chips during single hand-pack (look disabled). */
+    var locked = packMode === "hand" && !packCompleted;
+    Array.prototype.forEach.call($("pack-crafts").querySelectorAll(".craft-btn"), function (b) {
+      b.classList.toggle("locked", locked);
+    });
     var rawKits = $("pack-kits").value;
     var kits = strictKits(rawKits);
     markChips("pack", kits);
+    /* Fix 9: lock kit chips during single hand-pack (look disabled). */
+    Array.prototype.forEach.call(document.querySelectorAll('.kits-chip[data-for="pack"]'), function (c) {
+      c.classList.toggle("locked", locked);
+    });
     /* Chips or the manual box, never both (brief 5a). */
     $("pack-chips").hidden = packKitsManual;
     $("pack-kits-manual").hidden = !packKitsManual;
@@ -869,7 +952,7 @@
        with the choice highlighted, and the action row below is the only
        thing that appears once both are chosen. */
     var selKey = state.packCraft + ":" + kits;
-    if (selKey !== packSelKey) { packSelKey = selKey; packBoxOverride = null; packMode = null; $("pack-boxes-edit").hidden = true; }
+    if (selKey !== packSelKey) { packSelKey = selKey; packBoxOverride = null; packMode = null; packCompleted = null; /* Fix 2: a new selection starts a new order */ clearHandTicks(singleHandUid); singleHandUid = null; $("pack-boxes-edit").hidden = true; }
     var tbody = $("pack-table").querySelector("tbody");
     tbody.innerHTML = "";
     if (!valid) {
@@ -897,20 +980,24 @@
       if (onHand < r.qty) shortages.push({ name: r.name, have: onHand, need: r.qty, short: r.qty - onHand });
       var tr = document.createElement("tr");
       tr.innerHTML =
-        '<td><input type="checkbox" data-idx="' + idx + '" aria-label="Packed: ' + esc(r.name) + '"></td>' +
+        '<td><input type="checkbox" data-idx="' + idx + '" data-item="' + r.item + '" aria-label="Packed: ' + esc(r.name) + '"></td>' +
         '<td><span class="row-name">' + esc(r.name) + "</span>" + (binsOn ? ' <span class="row-bin">' + esc(L.binFor(settings(), r.item)) + "</span>" : "") + "</td>" +
         '<td class="num">' + r.qty + "</td>" +
         '<td class="num' + (onHand < r.qty ? " short" : "") + '">' + onHand + "</td>";
       var cb = tr.querySelector("input");
+      if (packCompleted) { cb.checked = true; cb.disabled = true; tr.classList.add("checked-row"); } /* Fix 2: completed list shows ticked */
       cb.addEventListener("change", function () {
         tr.classList.toggle("checked-row", cb.checked);
         updatePackProgress();
+        saveHandTicks(); /* Fix 1: ticks persist per order */
       });
       tr.addEventListener("click", function (ev) {
+        if (packCompleted) return; /* Fix 2: completed rows don't toggle */
         if (ev.target !== cb) { cb.checked = !cb.checked; cb.dispatchEvent(new Event("change")); }
       });
       tbody.appendChild(tr);
     });
+    applyHandTicks(); /* Fix 1: restore this order's durable ticks */
     if (shortages.length) {
       /* v3 E1: the toggle carries the total; expanding lists every short
          item on its own line — have / need / short — biggest shortage first */
@@ -955,6 +1042,8 @@
       summary: packSummary(cur.pack) + (boxes && boxes.length ? " · Boxes: " + L.boxesText(settings(), boxes) : ""),
       primary: "Subtract from inventory",
       onConfirm: function () {
+        clearHandTicks(singleHandUid); singleHandUid = null; /* Fix 1 */
+        packCompleted = { craftId: craft.id, kits: cur.kits }; /* Fix 2: the list stays on screen as completed */
         var by = storedBy(PACKBY_LS);
         var extra = { craftId: craft.id, kits: cur.kits };
         if (by) extra.packedBy = by;
@@ -973,7 +1062,7 @@
     if (shorts.length) {
       sheetOpts.extraHtml = '<div class="sheet-short"><p class="sheet-short-title">⚠ ' + shorts.length + (shorts.length === 1 ? " item short" : " items short") + "</p><ul>" +
         shorts.map(function (r) { var have = qtyOf(r.item); return "<li>" + esc(r.name) + ": have " + have + ", need " + r.qty + ", short " + (r.qty - have) + "</li>"; }).join("") + "</ul></div>";
-      sheetOpts.primary = "Subtract anyway (" + shorts.length + " short)";
+      sheetOpts.primary = "Pack anyway - " + shorts.length + (shorts.length === 1 ? " item short" : " items short");
       sheetOpts.primaryDanger = true;
       sheetOpts.cancelLabel = "Go back";
       sheetOpts.cancelFilled = true;
@@ -1093,6 +1182,7 @@
       cancelFilled: true,
       onConfirm: function () {
         var wasWalking = queueHandIdx >= 0;
+        packQueue.forEach(function (ln) { clearHandTicks(ln.uid); }); /* Fix 1 */
         packQueue = [];
         endQueueWalk();
         persistPackQueue();
@@ -1135,6 +1225,7 @@
       summary: packSummary(pack) + (boxes && boxes.length ? " · Boxes: " + L.boxesText(settings(), boxes) : ""),
       primary: "Subtract from inventory",
       onConfirm: function () {
+        clearHandTicks(ln.uid); /* Fix 1 */
         var by = storedBy(PACKBY_LS);
         var extra = { craftId: ln.craftId, kits: ln.kits };
         if (by) extra.packedBy = by;
@@ -1172,7 +1263,7 @@
     if (shorts.length) {
       sheetOpts.extraHtml = '<div class="sheet-short"><p class="sheet-short-title">⚠ ' + shorts.length + (shorts.length === 1 ? " item short" : " items short") + "</p><ul>" +
         shorts.map(function (r) { var have = qtyOf(r.item); return "<li>" + esc(r.name) + ": have " + have + ", need " + r.qty + ", short " + (r.qty - have) + "</li>"; }).join("") + "</ul></div>";
-      sheetOpts.primary = "Subtract anyway (" + shorts.length + " short)";
+      sheetOpts.primary = "Pack anyway - " + shorts.length + (shorts.length === 1 ? " item short" : " items short");
       sheetOpts.primaryDanger = true;
       sheetOpts.cancelLabel = "Go back";
       sheetOpts.cancelFilled = true;
@@ -1187,6 +1278,16 @@
      import tab records orders that were already packed by hand: queue any mix
      of crafts and kit amounts, then record them all in one save. */
   function renderPackActions() {
+    /* Fix 2: completed mode — banner + Start another order, no action buttons.
+       Lives here (not after the rows) so every renderPack path resets it. */
+    var done = !!packCompleted;
+    $("pack-completed").hidden = !done;
+    if (done) $("pack-completed-text").textContent = L.sku(packCompleted.craftId, packCompleted.kits);
+    var ab = $("pack-order").querySelector(".action-bar"); if (ab) ab.hidden = done;
+    var lt = $("pack-checklist").querySelector(".list-tools"); if (lt) lt.hidden = done;
+    /* Fix 9: Cancel button shows during single hand-pack (not completed). */
+    var showCancel = packMode === "hand" && !done;
+    $("btn-pack-cancel").hidden = !showCancel;
     /* Batch C item 12: strict parse — parseInt("6.5") is 6, which wrongly
        showed the action buttons for a decimal kits value. */
     var kits = strictKits($("pack-kits").value);
@@ -1507,7 +1608,7 @@
           if (v === cur) { toast(name + " is already " + cur + " — nothing to fix."); return; }
           clearError();
           commitChange(
-            newEntry("count-fix", "Count fix " + name + ": " + cur + " → " + v, [{ item: itemId, delta: v - cur }], { item: itemId, counted: v }),
+            newEntry("count-fix", "Count corrected: " + name + ": " + cur + " → " + v, [{ item: itemId, delta: v - cur }], { item: itemId, counted: v }),
             "Count fix " + name + " to " + v
           );
         } else if (invPanelMode === "bin") {
@@ -1544,7 +1645,7 @@
         list.appendChild(row);
       });
     });
-    filterEntryList(list);
+    filterEntryList(list, entryQuery("count-search"));
   }
   function applyCounts() {
     if (!requireEditor()) return;
@@ -1595,8 +1696,8 @@
         });
         $("count-entry").hidden = true;
         renderAll();
-        saveData("Count entry: " + entries.length + " item(s) fixed").then(function () {
-          batchToast("Counts applied: " + entries.length + " item(s) updated.", entries);
+        saveData("Count entry: " + entries.length + (entries.length === 1 ? " item fixed" : " items fixed")).then(function () {
+          batchToast("Counts applied: " + entries.length + (entries.length === 1 ? " item updated." : " items updated."), entries);
         });
       }
     });
@@ -1617,7 +1718,7 @@
         list.appendChild(row);
       });
     });
-    filterEntryList(list);
+    filterEntryList(list, entryQuery("delivery-search"));
   }
   function applyDelivery() {
     if (!requireEditor()) return;
@@ -1648,10 +1749,10 @@
       return "<li>" + esc(L.ITEMS[r.item]) + " +" + r.amount + flag + "</li>";
     }).join("");
     openSheet({
-      title: "Add " + received.length + (received.length === 1 ? " item" : " items") + " to stock?",
+      title: "Receive " + received.length + (received.length === 1 ? " item?" : " items?"),
       summary: "Check the amounts — nothing is saved yet.",
       extraHtml: '<ul class="sheet-lines">' + lines + "</ul>",
-      primary: "Add to stock",
+      primary: "Receive",
       cancelLabel: "Edit numbers",
       onConfirm: function () {
         var entries = [];
@@ -1669,8 +1770,8 @@
         });
         $("delivery-entry").hidden = true;
         renderAll();
-        saveData("Delivery: " + received.length + " item(s) received").then(function () {
-          batchToast("Delivery saved: " + received.length + " item(s) received.", entries);
+        saveData("Delivery: " + received.length + (received.length === 1 ? " item received" : " items received")).then(function () {
+          batchToast("Delivery saved: " + received.length + (received.length === 1 ? " item received." : " items received."), entries);
         });
       }
     });
@@ -1751,7 +1852,7 @@
       var restoredIdx = -1;
       if (entry.queueLine) {
         restoredIdx = Math.min(entry.queueIndex != null ? entry.queueIndex : packQueue.length, packQueue.length);
-        packQueue.splice(restoredIdx, 0, { craftId: entry.queueLine.craftId, kits: entry.queueLine.kits });
+        packQueue.splice(restoredIdx, 0, { craftId: entry.queueLine.craftId, kits: entry.queueLine.kits, uid: newUid("q") }); /* Fix 1: restored line is a new order, fresh uid */
         persistPackQueue();
       }
       renderAll();
@@ -1935,17 +2036,24 @@
        textContent gives a bare <br> no separator at all, so without it
        the subtitle reads "____________Packed by" to the queue tests'
        normalized-text assertions. */
-    var foot = "";
-    if ((boxes && boxes.length) || opts.reprint) {
-      foot = '<div class="print-foot">' + (boxes && boxes.length ? '<span class="foot-boxes">BOXES: ' + esc(boxes.join(", ")) + "</span>" : "") +
-        (opts.reprint ? "<div>REPRINT</div>" : "") + "</div>";
-    }
+    /* Fix 4: Packed by lives at the bottom of the sheet (not in the header),
+       on the same line as BOXES (right-aligned). If they don't fit, Packed by
+       comes first and BOXES wraps. */
+    var foot = '<div class="print-foot">' +
+      '<span class="print-packedby">Packed by: ' + (by ? esc(by) : "____________") + "</span>" +
+      (boxes && boxes.length ? '<span class="foot-boxes">BOXES: ' + esc(boxes.join(", ")) + "</span>" : "") +
+      (opts.reprint ? "<div>REPRINT</div>" : "") + "</div>";
     return '<section class="print-page pack-sheet"><table><thead>' +
       '<tr class="p-title"><th colspan="' + (binsOn ? 5 : 4) + '"><div class="label-title-row"><div class="label-title">' + esc(craft.name) + "</div></div>" +
-      '<div class="label-sub">Total kits: ' + kits + " · Order ID: ____________ <br>Packed by: " + (by ? esc(by) : "________") + " · Date: " + (opts.date ? esc(opts.date) : "________") + "</div>" +
+      /* Fix 4 (final): header is exactly 2 lines. Line 1: craft name only (30pt).
+         Line 2: "Total kits: N · Order ID: ____" (13.5pt). No SKU, no date,
+         no Packed by in the header. If line 2 overflows, shorten the Order ID
+         blank (fewer underscores) — never shrink text. */
+      '<div class="label-sub">Total kits: ' + kits + " · Order ID: ____________</div>" +
       "</th></tr>" +
       "<tr><th class='tick'></th><th>Item</th>" + (binsOn ? "<th>Bin</th>" : "") + "<th class='qty'>Per 6</th><th class='qty'>Total</th></tr></thead>" +
-      "<tbody>" + rows + "</tbody></table>" + foot + "</section>";
+      "<tbody>" + rows + "</tbody></table>" +
+      foot + "</section>";
   }
   /* A4: single Print prints this one craft's sheet and completes it at the
      same moment — stock deducts and History logs at print time. A short
@@ -2025,8 +2133,7 @@
       return '<section class="print-page"><table><thead>' +
         '<tr class="p-title"><th colspan="' + cols + '"><div class="label-title">' + esc(g.name) + '</div><div class="label-sub">' + (mode === "count" ? "Count sheet · " : "Inventory · ") + date + "</div></th></tr>" +
         headRow + "</thead><tbody>" + rows + "</tbody></table></section>";
-    });
-    /* Brief item 4: the count footer prints ONCE, after the last section —
+    });    /* Brief item 4: the count footer prints ONCE, after the last section —
        in flow inside it, so it either sits under the last table or, kept
        whole by break-inside: avoid, flows onto one final label. */
     if (mode === "count") {
@@ -2098,7 +2205,7 @@
         if (hideQtys) return "<tr><td>" + esc(r.name) + "</td></tr>";
         return "<tr><td>" + esc(r.name) + '</td><td class="qty">' + r.qty + '</td><td class="qty regular">' + r.level + '</td><td class="qty">' + (qtys[r.item] != null ? qtys[r.item] : r.order) + "</td></tr>";
       }).join("");
-      return '<section class="print-page"><table><thead>' +
+      return '<section class="print-page"><table class="reorder-sheet"><thead>' +
         '<tr class="p-title"><th colspan="' + (hideQtys ? 1 : 4) + '"><div class="label-title">' + esc(g) + '</div><div class="label-sub">Reorder list · ' + date + "</div></th></tr>" +
         (hideQtys ? "<tr><th>Item</th></tr>" : "<tr><th>Item</th><th class='qty'>On hand</th><th class='qty'>Warning level</th><th class='qty'>Order qty</th></tr>") + "</thead>" +
         "<tbody>" + rows + "</tbody></table></section>";
@@ -2234,9 +2341,11 @@
       /* leaveFromHash stays as the hashchange handler set it (true for a
          Back/forward prompt, false for a tab click) — it decides below
          whether Discard pushes a new entry or not. */
+      /* Fix 8: specific message for genuinely unfinished pack work. */
+      var packSku = state.packCraft ? L.sku(state.packCraft, $("pack-kits").value || "?") : null;
       openSheet({
         title: "Unsaved changes",
-        summary: "You have unsaved changes.",
+        summary: packSku ? "You're in the middle of packing " + packSku + ". Leave anyway?" : "You have unsaved changes.",
         primary: "Stay and finish",
         cancelLabel: "Discard",
         cancelDanger: true,
@@ -2278,7 +2387,9 @@
      pick (craft/kits chosen, not yet added), a walk in progress, a bulk
      list, an open inventory/history edit, or a dirty setting. */
   function hasUnsaved() {
-    return !!state.packCraft || $("pack-kits").value !== "" ||
+    /* Fix 2: a completed pack is saved work — leaving it raises no warning */
+    var packDirty = (!!state.packCraft || $("pack-kits").value !== "") && !packCompleted;
+    return packDirty ||
       queueHandIdx >= 0 || bulkLines.length > 0 ||
       hasUnsavedInvHist() || settingsDirty();
   }
@@ -3061,6 +3172,7 @@
   }
   function init() {
     loadPackQueue();
+    loadHandTicks(); /* Fix 1: after the queue, so orphaned tick entries prune against live uids */
     if (DEMO) {
       state.editor = { token: "", owner: DEFAULT_OWNER, repo: DEFAULT_REPO, login: "demo", kind: "demo" };
       var ghCard = $("settings-conn-status") && $("settings-conn-status").closest(".card");
@@ -3146,6 +3258,7 @@
     $("pack-kits").addEventListener("input", function () {
       if (queueHandIdx >= 0) endQueueWalk();
       packKitsTouched = true;
+      if (packCompleted) packCompleted = null; /* Fix 2: re-type after Complete starts a new order */
       renderPack();
     });
     $("pack-kits").addEventListener("blur", function () { blurLarge("pack"); });
@@ -3164,8 +3277,13 @@
     document.querySelectorAll(".kits-chip[data-for]").forEach(function (chip) {
       chip.addEventListener("click", function () {
         var target = chip.getAttribute("data-for");
+        /* Fix 9: lock kit chips during single hand-pack. */
+        if (target === "pack" && packMode === "hand" && !packCompleted) {
+          toast("Cancel this pack to change it");
+          return;
+        }
         $(target + "-kits").value = chip.getAttribute("data-kits");
-        if (target === "pack") { if (queueHandIdx >= 0) endQueueWalk(); packKitsTouched = true; renderPack(); } else renderBulk();
+        if (target === "pack") { if (queueHandIdx >= 0) endQueueWalk(); packKitsTouched = true; if (packCompleted) packCompleted = null; renderPack(); } else renderBulk();
       });
     });
     /* Brief 5a: "+" swaps the chips for a manual number box; "Chips" swaps back. */
@@ -3180,17 +3298,21 @@
           cb.closest("tr").classList.toggle("checked-row", val);
         });
         updatePackProgress();
+        saveHandTicks(); /* Fix 1 */
       };
       if (allChecked) { setAll(false); return; } /* unchecking is safe — no confirm */
       /* v2 A5: checking everything in one tap is the risky direction — ask first */
       openSheet({
-        title: "Check all",
-        summary: "Mark all " + boxes.length + " packed?",
-        primary: "Mark all",
+        title: "Pack all",
+        summary: "Pack all " + boxes.length + " packed?",
+        primary: "Pack all",
         onConfirm: function () { setAll(true); }
       });
     });
-    $("inv-search").addEventListener("input", function (ev) { invQuery = ev.target.value.trim().toLowerCase(); applyInvFilters(); filterEntryList($("delivery-entry-list")); filterEntryList($("count-entry-list")); });
+    $("inv-search").addEventListener("input", function (ev) { invQuery = ev.target.value.trim().toLowerCase(); applyInvFilters(); });
+    /* Fix 6: each entry form filters by its own top box */
+    $("count-search").addEventListener("input", function (ev) { filterEntryList($("count-entry-list"), ev.target.value.trim().toLowerCase()); });
+    $("delivery-search").addEventListener("input", function (ev) { filterEntryList($("delivery-entry-list"), ev.target.value.trim().toLowerCase()); });
     $("btn-filter-all").addEventListener("click", function () { invFilter = "all"; applyInvFilters(); });
     $("btn-lowfilter").addEventListener("click", function () { invFilter = "low"; applyInvFilters(); });
     $("btn-outfilter").addEventListener("click", function () { invFilter = "out"; applyInvFilters(); });
@@ -3321,7 +3443,7 @@
     $("btn-pack-queue").addEventListener("click", function () {
       var cur = currentPack(); if (!cur || !cur.pack.length) return;
       gateLarge("pack", function () {
-        packQueue.push({ craftId: cur.craft.id, kits: cur.kits });
+        packQueue.push({ craftId: cur.craft.id, kits: cur.kits, uid: newUid("q") });
         persistPackQueue();
         state.packCraft = null; $("pack-kits").value = ""; packMode = null; packKitsTouched = false;
         queueMode = true;
@@ -3329,7 +3451,14 @@
       });
     });
     $("btn-pack-print").addEventListener("click", function () { gateLarge("pack", printSingle); });
-    $("btn-pack-hand").addEventListener("click", function () { var cur = currentPack(); if (!cur || !cur.pack.length) return; gateLarge("pack", function () { packMode = "hand"; renderPack(); }); });
+    $("btn-pack-hand").addEventListener("click", function () { var cur = currentPack(); if (!cur || !cur.pack.length) return; gateLarge("pack", function () { packMode = "hand"; singleHandUid = newUid("s"); renderPack(); }); });
+    /* Fix 2: the completed view's way out — back to a clean picker */
+    $("btn-pack-again").addEventListener("click", function () {
+      packCompleted = null;
+      state.packCraft = null; $("pack-kits").value = ""; packMode = null; packKitsTouched = false; packKitsManual = false;
+      renderPack();
+      var top = $("pack-crafts"); if (top) top.scrollIntoView({ block: "start" });
+    });
     $("bulk-kits").addEventListener("focus", function () { bulkPrevKits = $("bulk-kits").value; });
     $("bulk-kits").addEventListener("input", function () {
       renderBulk();
@@ -3350,13 +3479,60 @@
       if (queueHandIdx >= 0) completeQueueLine(queueHandIdx, true);
       else completePacking();
     });
+    /* Fix 9: Cancel button for single hand-pack. Mark's confirm rules:
+       0 ticked -> cancel with NO confirm; SOME ticked -> ask ONCE;
+       ALL ticked -> two confirms. Clears saved ticks, no stock/History change. */
+    $("btn-pack-cancel").addEventListener("click", function () {
+      var boxes = $("pack-table").querySelectorAll("tbody input[type=checkbox]");
+      var total = boxes.length;
+      var ticked = 0;
+      boxes.forEach(function (cb) { if (cb.checked) ticked++; });
+      var uid = currentHandUid();
+      function doCancel() {
+        if (uid) clearHandTicks(uid);
+        packMode = null;
+        singleHandUid = null;
+        state.packCraft = null;
+        $("pack-kits").value = "";
+        renderPack();
+      }
+      if (ticked === 0) {
+        doCancel();
+      } else if (ticked < total) {
+        openSheet({
+          title: "Cancel this order?",
+          summary: "Cancel this order? " + ticked + (ticked === 1 ? " item is" : " items are") + " ticked.",
+          primary: "Yes, cancel",
+          cancelLabel: "Keep packing",
+          onConfirm: doCancel
+        });
+      } else {
+        /* ALL ticked: two confirms */
+        openSheet({
+          title: "Cancel this pack?",
+          summary: "Cancel this pack? All items are checked.",
+          primary: "Yes",
+          cancelLabel: "Keep packing",
+          onConfirm: function () {
+            openSheet({
+              title: "Are you sure?",
+              summary: "Are you sure? This can't be undone.",
+              primary: "Yes, cancel",
+              cancelLabel: "Keep packing",
+              cancelDanger: true,
+              onConfirm: doCancel
+            });
+          }
+        });
+      }
+    });
     /* Multi-craft queue buttons (brief item 1) */
     $("btn-queue-add").addEventListener("click", function () {
       var cur = currentPack(); if (!cur) return;
       gateLarge("pack", function () {
         /* No warning for adding the same craft twice — the duplicate pop-up
            fires at Print all / Hand pack all, not while adding. */
-        packQueue.push({ craftId: cur.craft.id, kits: cur.kits });
+        packQueue.push({ craftId: cur.craft.id, kits: cur.kits, uid: newUid("q") });
         persistPackQueue();
         /* Bulk-like: the picker clears for the next line. Retest item 3:
            a manual-count Add also closes the manual box, so the picker
@@ -3397,7 +3573,7 @@
     $("btn-print-reorder").addEventListener("click", printReorder);
     $("btn-enter-counts").addEventListener("click", function () {
       var p = $("count-entry"); p.hidden = !p.hidden;
-      if (!p.hidden) renderCountEntry();
+      if (!p.hidden) { $("count-search").value = ""; renderCountEntry(); }
     });
     $("btn-retry-load").addEventListener("click", function () { loadData().then(renderAll); });
     setInterval(refreshSyncStatus, 30000);
@@ -3405,7 +3581,7 @@
     $("btn-cancel-counts").addEventListener("click", function () { $("count-entry").hidden = true; });
     $("btn-delivery").addEventListener("click", function () {
       var p = $("delivery-entry"); p.hidden = !p.hidden;
-      if (!p.hidden) renderDeliveryEntry();
+      if (!p.hidden) { $("delivery-search").value = ""; renderDeliveryEntry(); }
     });
     $("btn-apply-delivery").addEventListener("click", applyDelivery);
     $("btn-cancel-delivery").addEventListener("click", function () { $("delivery-entry").hidden = true; });
