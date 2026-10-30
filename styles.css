@@ -29,7 +29,7 @@ body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, san
 
 /* tabs */
 .tabs { display: flex; gap: 6px; padding: 10px 12px 0; max-width: 1024px; margin: 0 auto; }
-.tabs button { border: 1px solid var(--line); background: #EEF1F4; padding: 10px 16px; font-size: 15.5px; font-weight: 600; border-radius: 10px; cursor: pointer; min-height: 48px; color: var(--ink); }
+.tabs button { border: 1px solid var(--line); background: #EEF1F4; padding: 10px 16px; font-size: 16px; font-weight: 600; border-radius: 10px; cursor: pointer; min-height: 48px; color: var(--ink); }
 .tab-ic { display: inline-flex; }
 .tab-ic svg { width: 24px; height: 24px; }
 .btn svg.ic { width: 20px; height: 20px; vertical-align: -4px; margin-right: 6px; }
@@ -44,13 +44,17 @@ body.load-failed main > section { display: none !important; }
 h2 { margin: 2px 0 6px; font-size: 20px; }
 h3 { margin: 16px 0 8px; font-size: 17px; }
 .hint { color: var(--muted); font-size: 16px; margin: 4px 0 12px; line-height: 1.5; }
+/* Fix 2: the completed-pack banner — clearly marked, big tap target kept */
+#pack-completed { margin: 12px 0; padding: 12px 14px; border: 2px solid #1A7336; border-radius: var(--radius); background: #EDF7F0; }
+.completed-note { font-size: 17px; font-weight: 700; color: #1A7336; margin: 0 0 10px; }
+#btn-pack-again { min-height: 52px; font-size: 17px; }
 
 /* crafts */
 .craft-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; margin-bottom: 16px; }
 .craft-btn { border: 1.5px solid var(--line); background: var(--surface); border-radius: var(--radius); padding: 12px; font-size: 16px; font-weight: 600; cursor: pointer; text-align: left; min-height: 56px; color: var(--ink); position: relative; display: flex; gap: 6px; align-items: flex-start; min-width: 0; }
 .craft-check { flex: none; width: 20px; text-align: center; font-weight: 800; font-size: 18px; line-height: 1; }
 .craft-text { flex: 1; min-width: 0; overflow-wrap: break-word; }
-.craft-btn small { display: block; font-weight: 400; color: var(--muted); font-size: 14px; margin-top: 2px; }
+.craft-btn small { display: block; font-weight: 400; color: var(--muted); font-size: 16px; margin-top: 2px; }
 .craft-btn.selected { border: 2px solid #2457A6; background: #E8EEF8; color: #1B4382; }
 .craft-btn.selected small { color: #1B4382; }
 
@@ -63,7 +67,7 @@ h3 { margin: 16px 0 8px; font-size: 17px; }
 .stepper input { width: 76px; text-align: center; font-size: 24px; font-weight: 800; border: none; border-left: 1px solid var(--line); border-right: 1px solid var(--line); color: var(--ink); -moz-appearance: textfield; appearance: textfield; }
 .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; }
 .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-.kits-chip { border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px; padding: 9px 18px; font-size: 15.5px; font-weight: 600; cursor: pointer; min-height: 44px; color: var(--ink); }
+.kits-chip { border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px; padding: 9px 18px; font-size: 16px; font-weight: 600; cursor: pointer; min-height: 44px; color: var(--ink); }
 .kits-chip.selected { background: #E8EEF8; color: #1B4382; border: 2px solid #2457A6; }
 .kits-chip.selected::before { content: "✓ "; font-weight: 800; }
 .sku-box { font-size: 16.5px; margin-top: 10px; }
@@ -91,7 +95,7 @@ body.view-only .editor-note { display: block; }
 /* pack list */
 .list-head { display: flex; align-items: center; gap: 12px; }
 .list-head h3 { margin: 8px 0; }
-.progress-text { color: var(--muted); font-size: 14.5px; }
+.progress-text { color: var(--muted); font-size: 16px; }
 .list-head .btn-quiet { margin-left: auto; font-size: 15px; }
 .hand-line [data-remove] { min-width: 44px; min-height: 44px; }
 .progress-bar { height: 6px; background: var(--line); border-radius: 3px; margin: 4px 0 10px; }
@@ -107,7 +111,7 @@ body.view-only .editor-note { display: block; }
 .progress-bar i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 3px; transition: width .15s; }
 .data-table { border-collapse: collapse; width: 100%; margin: 6px 0; }
 .data-table th, .data-table td { border-bottom: 1px solid var(--line); padding: 10px 8px; text-align: left; font-size: 16.5px; }
-.data-table th { background: #F1F3F6; font-size: 14px; color: var(--muted); }
+.data-table th { background: #F1F3F6; font-size: 16px; color: var(--muted); }
 .data-table td.num, .data-table th.num { text-align: right; font-weight: 700; }
 .data-table tbody tr { cursor: pointer; }
 .data-table input[type="checkbox"] { width: 28px; height: 28px; accent-color: var(--accent); cursor: pointer; }
@@ -129,9 +133,16 @@ tr.checked-row td .row-name { text-decoration: line-through; }
 .box-add { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
 .box-add select { height: 48px; border: 1.5px solid var(--line); border-radius: 10px; padding: 0 10px; font-size: 16px; background: var(--surface); max-width: 100%; }
 .box-add input[type="number"] { width: 170px; max-width: 100%; height: 48px; border: 1.5px solid var(--line); border-radius: 10px; padding: 0 10px; font-size: 16px; }
+/* Fix 7: Settings "Default reorder quantity" box is at least 44px tall. */
+#set-reorder-qty { min-height: 44px; font-size: 16px; padding: 8px 10px; border: 1.5px solid var(--line); border-radius: 10px; }
 .action-bar { display: flex; gap: 8px; margin-top: 10px; }
 .action-bar .btn { min-height: 48px; font-size: 16.5px; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .action-bar .btn-primary { flex: 1; }
+/* Fix 9: locked craft cards + kit chips during single hand-pack look disabled. */
+.craft-btn.locked, .kits-chip.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 /* inventory */
 .search-box { width: 100%; height: 50px; border: 1.5px solid var(--line); border-radius: var(--radius); padding: 0 14px; font-size: 16.5px; margin: 4px 0 6px; background: var(--surface); }
@@ -177,7 +188,7 @@ body.view-only .inv-actions { display: none; }
 .inv-panel .go { width: 118px; height: 50px; border: none; border-radius: 10px; background: var(--accent); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; }
 .inv-panel .panel-note { color: var(--muted); font-size: 14px; margin-top: 8px; }
 .count-entry { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 16px; margin: 12px 0; background: #FAFBFC; }
-.count-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 6px 0; border-bottom: 1px dashed var(--line); font-size: 15.5px; }
+.count-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 6px 0; border-bottom: 1px dashed var(--line); font-size: 16px; }
 .count-row input { width: 110px; height: 44px; font-size: 16px; padding: 4px 10px; border: 1.5px solid var(--line); border-radius: 8px; }
 
 /* history */
@@ -300,11 +311,15 @@ details > summary { min-height: 44px; box-sizing: border-box; padding-top: 10px;
 @media (max-width: 700px) {
   body { padding-bottom: 64px; }
   .tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: var(--surface); border-top: 1px solid var(--line); padding: 0; margin: 0; max-width: none; gap: 0; }
-  .tabs button { flex: 1; border: none; background: none; border-radius: 0; min-height: 58px; font-size: 14px; padding: 6px 2px; display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--muted); }
+  .tabs button { flex: 1; border: none; background: none; border-radius: 0; min-height: 58px; font-size: 16px; padding: 6px 2px; display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--muted); }
   .tabs button.active { color: var(--accent); background: none; }
   .tab-ic { margin: 0; line-height: 1.1; }
   main { margin: 8px 8px 16px; padding: 14px 12px 20px; }
   #tab-pack .action-bar, #tab-hand .action-bar, #tab-bulk .action-bar { position: sticky; bottom: 66px; background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -4px 14px rgba(31,35,40,.08); padding: 10px 0; margin-top: 0; }
+  /* Fix 6: the Receive / Count save bar pins on screen like the hand-pack
+     Complete bar; the lists get bottom padding so no row hides under it. */
+  #count-entry .btn-row, #delivery-entry .btn-row { position: sticky; bottom: 66px; background: var(--surface); border-top: 1px solid var(--line); padding: 10px 0; }
+  #count-entry-list, #delivery-entry-list { padding-bottom: 8px; }
   /* v2 B3: two-column craft cards + one-row kit chips, so the picker fits a small phone */
   .craft-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   /* Polish item 2: every picker row the same height on phones — the
@@ -349,7 +364,7 @@ details > summary { min-height: 44px; box-sizing: border-box; padding-top: 10px;
   #pack-table th:nth-child(3), #pack-table td:nth-child(3) { width: 40px; }
   #pack-table th:nth-child(4), #pack-table td:nth-child(4) { width: 48px; }
   #pack-table td:nth-child(2) { padding-left: 4px; padding-right: 4px; }
-  .kits-block .chips { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+  .kits-block .chips { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
   /* Pack's chips toggle with the "+" manual box: hidden must win over the
      grid display above, or "+" never hides the chips at phone widths. */
   .kits-block .chips[hidden] { display: none !important; }
@@ -440,6 +455,14 @@ details > summary { min-height: 44px; box-sizing: border-box; padding-top: 10px;
   #print-area .label-title { font-size: 30pt; font-weight: 800; margin: 0; line-height: 1.1; }
   #print-area .label-sub { font-size: 13.5pt; font-weight: 700; margin: 2pt 0 0; }
   #print-area td.qty, #print-area th.qty { text-align: center; font-weight: 700; white-space: nowrap; }
+  /* Fix 3: the reorder sheet's number columns are sized to their numbers,
+     not their headers — headers wrap, side padding trims to 3pt — so the
+     Item column gets the width back and long names ("Clay Tray + 6 Picks",
+     "Double Sided tape") take 2 lines max. "888" (widest 3-digit at
+     12.5pt bold ≈ 21pt) sets the column; 4-digit values still display
+     (auto layout grows past the CSS width). No font change. */
+  #print-area table.reorder-sheet td.qty, #print-area table.reorder-sheet th.qty { width: 21pt; padding-left: 3pt; padding-right: 3pt; }
+  #print-area table.reorder-sheet th.qty { white-space: normal; }
   #print-area td.qty.regular { font-weight: 400; }
   /* Count-fit (item 9 follow-up): the count table's extra columns steal
      width from Item under auto layout, so long names wrap to an extra
